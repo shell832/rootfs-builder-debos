@@ -15,6 +15,7 @@ echo "deb http://repo.ubports.com/ xenial_-_android9_-_android10 main" >> /etc/a
 echo "Package: *" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin: release o=UBports,a=xenial_-_android9" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin-Priority: 2010" >> /etc/apt/preferences.d/ubports-android9.pref
+echo "" >> /etc/apt/preferences.d/ubports-android9.pref
 
 echo "Package: *" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin: release o=UBports,a=xenial_-_android9_-_android10" >> /etc/apt/preferences.d/ubports-android9.pref
