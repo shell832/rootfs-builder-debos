@@ -104,3 +104,12 @@ cat ${fstab} | while read line; do
     echo "mounting $path as $2"
     mount $path $2 -t $3 -o $(parse_mount_flags $4)
 done
+
+# Provide a bind mount from /cache to /userdata/cache on systems without a dedicated cache partition
+if [ ! -e cache ]; then
+    if [ ! -d /data/cache ]; then
+        mkdir /data/cache
+    fi
+    mkdir cache
+    mount -o bind /data/cache cache
+fi
