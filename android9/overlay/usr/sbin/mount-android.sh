@@ -110,6 +110,6 @@ if [ ! -e cache ]; then
     if [ ! -d /data/cache ]; then
         mkdir /data/cache
     fi
-    mkdir cache
-    mount -o bind /data/cache cache
+    mkdir /android/cache
+    mount -o bind /data/cache /android/cache
 fi
