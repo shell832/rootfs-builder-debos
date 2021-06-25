@@ -102,7 +102,7 @@ actions:
     description: Creating image
     imagename: {{ $image }}
     imagesize: 10GB
-    partitiontype: gpt
+    partitiontype: msdos
     mountpoints:
       - mountpoint: /
         partition: systemanddata
