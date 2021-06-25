@@ -86,7 +86,7 @@ actions:
     description: Install amd64 GRUB
     script: >-
       ../scripts/apt-install.sh
-      grub-efi-amd64 grub-efi-amd64-bin grub-pc-bin
+      grub-pc-bin
 {{ end }}
 
   - action: overlay
@@ -135,7 +135,7 @@ actions:
 {{ if eq $architecture "amd64" }}
   - action: run
     chroot: true
-    command: grub-install --target=x86_64-efi --no-nvram
+    command: grub-install /dev/vda --target=i386-pc
 {{ end }}
 
 {{ if eq $architecture "arm64" }}
