@@ -39,13 +39,13 @@ actions:
     description: Add UBports focal repo
     # Note, this operation also updates packages in base image.
     chroot: true
-    script: ./scripts/add-and-pin-repo.sh http://repo2.ubports.com/ focal 2000
+    script: ../scripts/add-and-pin-repo.sh http://repo2.ubports.com/ focal 2000
 
   - action: run
     description: Install minimal debugging things
     chroot: true
     script: >-
-      ./scripts/apt-install.sh
+      ../scripts/apt-install.sh
       ubuntu-minimal
       wpasupplicant openssh-server rfkill
       linux-image-generic libegl-mesa0
@@ -76,7 +76,7 @@ actions:
     chroot: true
     description: Install arm64 GRUB
     script: >-
-      ./scripts/apt-install.sh
+      ../scripts/apt-install.sh
       grub-efi-arm64 grub-efi-arm64-bin
 {{ end }}
 
@@ -85,7 +85,7 @@ actions:
     chroot: true
     description: Install amd64 GRUB
     script: >-
-      ./scripts/apt-install.sh
+      ../scripts/apt-install.sh
       grub-efi-amd64 grub-efi-amd64-bin grub-pc-bin
 {{ end }}
 
