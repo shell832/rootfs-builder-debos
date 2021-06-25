@@ -112,9 +112,10 @@ actions:
         partition: efi
     partitions:
       - name: efi
-        fs: fat32
-        start: 0%
+        fs: vfat
+        start: 1M
         end: 200MB
+        parttype: EF
         flags: [ esp ]
       - name: boot
         fs: ext2
