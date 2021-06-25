@@ -10,9 +10,9 @@ else
 fi
 
 if [ -e /dev/kvm ]; then
-        KVM_ARGS='--device /dev/kvm --group-add=$(getent group kvm | cut -d : -f 3)'
+        KVM_ARGS="--device /dev/kvm --group-add=$(getent group kvm | cut -d : -f 3)"
 else
-        KVM_ARGS='-v /dev/shm:/dev/shm'
+        KVM_ARGS="-v /dev/shm:/dev/shm"
 fi
 
 if ! docker inspect --type=image ${IMAGE} > /dev/null 2>&1; then
