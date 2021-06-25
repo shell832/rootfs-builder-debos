@@ -108,7 +108,7 @@ actions:
         partition: systemanddata
       - mountpoint: /boot
         partition: boot
-      - mountpoint: /efi
+      - mountpoint: /boot/efi
         partition: efi
     partitions:
       - name: efi
