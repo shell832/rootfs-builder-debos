@@ -94,11 +94,6 @@ actions:
     description: Adding generic overlay
     destination: /
 
-  - action: run
-    description: Update bootloader and initramfs
-    chroot: true
-    command: update-grub && update-initramfs -u
-
   - action: pack
     file: {{ $tarball }}
     compression: gz
@@ -133,3 +128,18 @@ actions:
   - action: filesystem-deploy
     description: Deploying filesystem into image
 
+  - action: run
+    chroot: true
+    command: update-grub && update-initramfs -u
+
+{{ if eq $architecture "amd64" }}
+  - action: run
+    chroot: true
+    command: grub-install --target=x86_64-efi --no-nvram
+{{ end }}
+
+{{ if eq $architecture "arm64" }}
+  - action: run
+    chroot: true
+    command: grub-install --target=arm64-efi --no-nvram
+{{ end }}
