@@ -1,0 +1,135 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $tarball := or .tarball (printf "ubuntu-touch-pdk-%s.tar.gz" $architecture) -}}
+{{- $image := or .image (printf "ubuntu-touch-pdk-%s.raw" $architecture) -}}
+{{- $cdimagesmirror := or .cdimagesmirror "http://cdimage.ubuntu.com" -}}
+{{- $rootpasswd := or .rootpasswd "" }}
+
+architecture: {{ $architecture }}
+actions:
+  - action: download
+    description: Download Ubuntu Base, so that we don't have to run debootstrap
+    url: "{{ $cdimagesmirror }}/ubuntu-base/releases/focal/release/ubuntu-base-20.04.2-base-{{ $architecture }}.tar.gz"
+    unpack: false
+    filename: ubuntu-base.tar.gz
+    name: ubuntu-base.tar.gz
+
+  - action: unpack
+    description: Unpacking rootfs
+    origin: ubuntu-base.tar.gz
+    compression: gz
+
+{{ if ne $rootpasswd "" }}
+  - action: run
+    chroot: true
+    description: Setting password on root user
+    command: echo root:{{ $rootpasswd }} | chpasswd
+{{ end }}
+
+  - action: download
+    description: Download UBports keyring
+    url: https://repo.ubports.com/keyring.gpg
+    name: keyring
+
+  - action: overlay
+    description: Add UBports keyring to the rootfs
+    origin: keyring
+    destination: /etc/apt/trusted.gpg.d/ubports.gpg
+
+  - action: run
+    description: Add UBports focal repo
+    # Note, this operation also updates packages in base image.
+    chroot: true
+    script: ./scripts/add-and-pin-repo.sh http://repo2.ubports.com/ focal 2000
+
+  - action: run
+    description: Install minimal debugging things
+    chroot: true
+    script: >-
+      ./scripts/apt-install.sh
+      ubuntu-minimal
+      wpasupplicant openssh-server rfkill
+      linux-image-generic libegl-mesa0
+      libgbm1 libgl1-mesa-dri libgl1-mesa-glx
+      libglapi-mesa libgles2-mesa libglx-mesa0
+      libosmesa6 build-essential devscripts equivs
+  # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
+
+#  - action: run
+#    description: Enable hybris-usb
+#    chroot: true
+#    command: >-
+#      systemctl disable isc-dhcp-server.service isc-dhcp-server6.service &&
+#      systemctl enable usb-tethering.service
+
+#  - action: run
+#    description: Mark R/W
+#    chroot: true
+#    command: touch /.writable_image
+
+#  - action: run
+#    description: Temporary disable writable-paths
+#    chroot: true
+#    command: mv /etc/system-image/writable-paths /etc/system-image/writable-paths.temporary_disabled
+
+{{ if eq $architecture "arm64" }}
+  - action: run
+    chroot: true
+    description: Install arm64 GRUB
+    script: >-
+      ./scripts/apt-install.sh
+      grub-efi-arm64 grub-efi-arm64-bin
+{{ end }}
+
+{{ if eq $architecture "amd64" }}
+  - action: run
+    chroot: true
+    description: Install amd64 GRUB
+    script: >-
+      ./scripts/apt-install.sh
+      grub-efi-amd64 grub-efi-amd64-bin grub-pc-bin
+{{ end }}
+
+  - action: overlay
+    source: focal-pdk/overlay
+    description: Adding generic overlay
+    destination: /
+
+  - action: run
+    description: Update bootloader and initramfs
+    chroot: true
+    command: update-grub && update-initramfs -u
+
+  - action: pack
+    file: {{ $tarball }}
+    compression: gz
+
+  - action: image-partition
+    description: Creating image
+    imagename: {{ $image }}
+    imagesize: 10GB
+    partitiontype: gpt
+    mountpoints:
+      - mountpoint: /
+        partition: systemanddata
+      - mountpoint: /boot
+        partition: boot
+      - mountpoint: /efi
+        partition: efi
+    partitions:
+      - name: efi
+        fs: fat32
+        start: 0%
+        end: 200MB
+        flags: [ esp ]
+      - name: boot
+        fs: ext2
+        start: 200MB
+        end: 500MB
+      - name: systemanddata
+        fs: ext4
+        start: 500MB
+        end: 100%
+
+  - action: filesystem-deploy
+    description: Deploying filesystem into image
+
