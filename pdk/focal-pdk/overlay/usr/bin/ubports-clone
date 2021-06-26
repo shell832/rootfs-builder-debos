@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -e
+
+PROJECT=""
+PROJECT_ROOT="/build"
+
+function tryPull {
+    CURL_OUTPUT=$(curl -I "$1" 2> /dev/null)
+    HTTP_RESPONSE=$(echo "$CURL_OUTPUT" | grep "^HTTP/2" | awk -F" " '{ print $2 }')
+    if [ "$HTTP_RESPONSE" != "200" ]; then
+        echo "Project doesn't seem to exist at '$1'..."
+    else
+        cd "$PROJECT_ROOT"
+        git clone --recursive "$1" && echo "Clone complete!" && exit 0
+    fi
+}
+
+GITLAB=0
+GITHUB=0
+OVERRIDE_PROVIDED=0
+
+while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+        --github)
+            GITHUB=1
+            GITLAB=0
+            OVERRIDE_PROVIDED=1
+            shift
+        ;;
+        --gitlab)
+            GITHUB=0
+            GITLAB=1
+            OVERRIDE_PROVIDED=1
+            shift
+        ;;
+        -h|--help)
+            echo "usage: $0 [--gitlab] [--github] project-name"
+            echo ""
+            echo "--github and --gitlab are optional, both will be probed by default"
+            exit 0
+        ;;
+        *)
+            PROJECT="$arg"
+            shift
+        ;;
+    esac
+done
+
+if [ "$PROJECT" == "" ]; then
+    echo "Please provide a project name as an argument"
+    exit 1
+fi
+
+# Look in both locations by default
+if [ "$OVERRIDE_PROVIDED" == "0" ]; then
+    GITLAB=1
+    GITHUB=1
+fi
+
+if [ "$GITLAB" == "1" ]; then
+    echo "Looking for repo '$PROJECT' on GitLab (core)"
+    tryPull "https://gitlab.com/ubports/core/$PROJECT"
+fi
+
+if [ "$GITLAB" == "1" ]; then
+    echo "Looking for repo '$PROJECT' on GitLab (core/packaging)"
+    tryPull "https://gitlab.com/ubports/core/packaging/$PROJECT"
+fi
+
+if [ "$GITLAB" == "1" ]; then
+    echo "Looking for repo '$PROJECT' on GitLab (core/lib-cpp)"
+    tryPull "https://gitlab.com/ubports/core/lib-cpp/$PROJECT"
+fi
+
+if [ "$GITHUB" == "1" ]; then
+    echo "Looking for repo '$PROJECT' on GitHub"
+    tryPull "https://github.com/ubports/$PROJECT"
+fi
