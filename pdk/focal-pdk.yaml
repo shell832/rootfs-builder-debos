@@ -25,11 +25,6 @@ actions:
     command: echo root:{{ $rootpasswd }} | chpasswd
 {{ end }}
 
-  - action: run
-    chroot: true
-    description: Setting password on phablet user
-    command: echo phablet:phablet | chpasswd
-
   - action: download
     description: Download UBports keyring
     url: https://repo.ubports.com/keyring.gpg
