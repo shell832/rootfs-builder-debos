@@ -51,25 +51,8 @@ actions:
       linux-image-generic libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
       libglapi-mesa libgles2-mesa libglx-mesa0
-      libosmesa6 build-essential devscripts equivs git
+      libosmesa6 build-essential devscripts equivs git sshfs
   # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
-
-#  - action: run
-#    description: Enable hybris-usb
-#    chroot: true
-#    command: >-
-#      systemctl disable isc-dhcp-server.service isc-dhcp-server6.service &&
-#      systemctl enable usb-tethering.service
-
-#  - action: run
-#    description: Mark R/W
-#    chroot: true
-#    command: touch /.writable_image
-
-#  - action: run
-#    description: Temporary disable writable-paths
-#    chroot: true
-#    command: mv /etc/system-image/writable-paths /etc/system-image/writable-paths.temporary_disabled
 
 {{ if eq $architecture "arm64" }}
   - action: run
@@ -144,6 +127,11 @@ actions:
     chroot: true
     command: grub-install --target=arm64-efi --no-nvram
 {{ end }}
+
+  - action: run
+    description: Create PDK folders
+    chroot: true
+    command: mkdir -p /pdk/out && mkdir -p /pdk/sources
 
   - action: run
     description: Create SSH keys for mounting
