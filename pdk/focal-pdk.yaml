@@ -51,7 +51,7 @@ actions:
       linux-image-generic libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
       libglapi-mesa libgles2-mesa libglx-mesa0
-      libosmesa6 build-essential devscripts equivs
+      libosmesa6 build-essential devscripts equivs git
   # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
 
 #  - action: run
@@ -144,3 +144,12 @@ actions:
     chroot: true
     command: grub-install --target=arm64-efi --no-nvram
 {{ end }}
+
+  - action: run
+    description: Create SSH keys for mounting
+    chroot: true
+    command: mkdir /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
+
+  - action: run
+    description: Extract SSH private key for mounting
+    command: cp $ROOTDIR/root/.ssh/id_rsa $ARTIFACTDIR/id_rsa
