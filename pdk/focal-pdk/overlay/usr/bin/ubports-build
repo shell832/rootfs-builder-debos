@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+
+PROJECT="$1"
+PROJECT_ROOT="/pdk/sources"
+OUT_ROOT="/pdk/out/$PROJECT"
+
+echo "Trying to build project '$1'"
+cd "$PROJECT_ROOT"
+
+if [ ! -d "$OUT_ROOT" ]; then
+    mkdir -p "$OUT_ROOT"
+fi
+
+INSTALL_CMD="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
+mk-build-deps -t "$INSTALL_CMD" -i -r debian/control
+dpkg-buildpackage \
+    -j$(nproc --all) \
+    --buildinfo-option=-u"$OUT_ROOT" \
+    --changes-option=-u"$OUT_ROOT" \
+    -b \
+    --no-sign
+
+echo "Build successful, artifacts stored in '$OUT_ROOT'"
