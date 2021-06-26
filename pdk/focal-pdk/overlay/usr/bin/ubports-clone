@@ -3,7 +3,7 @@
 set -e
 
 PROJECT=""
-PROJECT_ROOT="/build"
+PROJECT_ROOT="/pdk/sources"
 
 function tryPull {
     CURL_OUTPUT=$(curl -I "$1" 2> /dev/null)
@@ -62,14 +62,10 @@ fi
 if [ "$GITLAB" == "1" ]; then
     echo "Looking for repo '$PROJECT' on GitLab (core)"
     tryPull "https://gitlab.com/ubports/core/$PROJECT"
-fi
 
-if [ "$GITLAB" == "1" ]; then
     echo "Looking for repo '$PROJECT' on GitLab (core/packaging)"
     tryPull "https://gitlab.com/ubports/core/packaging/$PROJECT"
-fi
 
-if [ "$GITLAB" == "1" ]; then
     echo "Looking for repo '$PROJECT' on GitLab (core/lib-cpp)"
     tryPull "https://gitlab.com/ubports/core/lib-cpp/$PROJECT"
 fi
