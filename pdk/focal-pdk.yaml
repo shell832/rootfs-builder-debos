@@ -51,7 +51,7 @@ actions:
       linux-image-generic libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
       libglapi-mesa libgles2-mesa libglx-mesa0
-      libosmesa6 build-essential devscripts equivs git sshfs
+      libosmesa6 build-essential devscripts equivs git sshfs curl
   # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
 
 {{ if eq $architecture "arm64" }}
