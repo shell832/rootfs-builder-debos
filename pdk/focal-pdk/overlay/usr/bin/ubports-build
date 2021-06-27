@@ -17,14 +17,15 @@ if [ ! -d "$PROJECT_ROOT/$PROJECT/src" ]; then
     exit 1
 fi
 
+echo "Copying sources to build directory"
+
+if [ -d "$PROJECT_BUILDROOT" ]; then
+    rm -rf "$PROJECT_BUILDROOT"
+fi
+
 echo "Creating buildroot directory"
 mkdir -p "$PROJECT_BUILDROOT"
 
-echo "Copying sources to build directory"
-
-if [ -d "$PROJECT_BUILDROOT/$PROJECT" ]; then
-    rm -rf "$PROJECT_BUILDROOT/$PROJECT"
-fi
 cp -a "$PROJECT_ROOT/$PROJECT/src" "$PROJECT_BUILDROOT/src"
 
 cd "$PROJECT_BUILDROOT/src"
