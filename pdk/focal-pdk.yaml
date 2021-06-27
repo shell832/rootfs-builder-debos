@@ -43,7 +43,7 @@ actions:
     chroot: true
     script: >-
       ../scripts/apt-install.sh
-      ubuntu-minimal
+      ubuntu-minimal network-manager
       wpasupplicant openssh-server rfkill
       linux-image-generic libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
