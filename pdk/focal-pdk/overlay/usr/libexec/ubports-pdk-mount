@@ -7,6 +7,10 @@ if [ ! -L /dev/disk/by-label/PDKSETTINGS ]; then
     exit 1
 fi
 
+if [ ! -d /pdk/settings ]; then
+    mkdir -p /pdk/settings
+fi
+
 if mountpoint -q /pdk/settings; then
     echo "/pdk/settings mounted already"
 else
