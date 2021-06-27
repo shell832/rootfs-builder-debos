@@ -4,6 +4,8 @@ Wants=network-online.target
 After=network.target network-online.target
 
 [Service]
+Type=oneshot
+RemainAfterExit=true
 ExecStart=/bin/bash /usr/libexec/ubports-pdk-mount
 
 [Install]
