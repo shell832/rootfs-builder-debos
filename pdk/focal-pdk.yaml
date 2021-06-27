@@ -2,7 +2,6 @@
 {{- $tarball := or .tarball (printf "ubuntu-touch-pdk-%s.tar.gz" $architecture) -}}
 {{- $image := or .image (printf "ubuntu-touch-pdk-%s.raw" $architecture) -}}
 {{- $cdimagesmirror := or .cdimagesmirror "http://cdimage.ubuntu.com" -}}
-{{- $rootpasswd := or .rootpasswd "" }}
 
 architecture: {{ $architecture }}
 actions:
@@ -18,12 +17,10 @@ actions:
     origin: ubuntu-base.tar.gz
     compression: gz
 
-{{ if ne $rootpasswd "" }}
   - action: run
     chroot: true
     description: Setting password on root user
-    command: echo root:{{ $rootpasswd }} | chpasswd
-{{ end }}
+    command: echo root:root | chpasswd
 
   - action: download
     description: Download UBports keyring
@@ -129,15 +126,6 @@ actions:
 {{ end }}
 
   - action: run
-    description: Create PDK folders
+    description: PDK mount setup
     chroot: true
-    command: mkdir -p /pdk/out && mkdir -p /pdk/sources
-
-  - action: run
-    description: Create SSH keys for mounting
-    chroot: true
-    command: mkdir /root/.ssh && chmod 700 /root/.ssh && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
-
-  - action: run
-    description: Extract SSH private key for mounting
-    command: cp $ROOTDIR/root/.ssh/id_rsa $ARTIFACTDIR/id_rsa
+    command: mkdir -p /pdk/buildsources && mkdir -p /pdk/sources && systemctl enable ubports-pdk-mount.service

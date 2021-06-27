@@ -11,8 +11,9 @@ function tryPull {
     if [ "$HTTP_RESPONSE" != "200" ]; then
         echo "Project doesn't seem to exist at '$1'..."
     else
-        cd "$PROJECT_ROOT"
-        git clone --recursive "$1" && echo "Clone complete!" && exit 0
+        mkdir -p "$PROJECT_ROOT/$PROJECT"
+        cd "$PROJECT_ROOT/$PROJECT"
+        git clone --recursive "$1" src && echo "Clone complete!" && exit 0
     fi
 }
 

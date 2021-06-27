@@ -3,23 +3,41 @@
 set -e
 
 PROJECT="$1"
-PROJECT_ROOT="/pdk/sources"
-OUT_ROOT="/pdk/out/$PROJECT"
 
-echo "Trying to build project '$1'"
-cd "$PROJECT_ROOT"
-
-if [ ! -d "$OUT_ROOT" ]; then
-    mkdir -p "$OUT_ROOT"
+if [ "$PROJECT" == "" ]; then
+    echo "Please provide a project name as an argument (same as for ubports-clone)"
+    exit 1
 fi
+
+PROJECT_ROOT="/pdk/sources"
+PROJECT_BUILDROOT="/pdk/buildsources/$PROJECT"
+
+if [ ! -d "$PROJECT_ROOT/$PROJECT/src" ]; then
+    echo "Project source code not cloned, please clone again with ubports-clone"
+    exit 1
+fi
+
+echo "Creating buildroot directory"
+mkdir -p "$PROJECT_BUILDROOT"
+
+echo "Copying sources to build directory"
+
+if [ -d "$PROJECT_BUILDROOT/$PROJECT" ]; then
+    rm -rf "$PROJECT_BUILDROOT/$PROJECT"
+fi
+cp -a "$PROJECT_ROOT/$PROJECT/src" "$PROJECT_BUILDROOT/src"
+
+cd "$PROJECT_BUILDROOT/src"
+echo "Trying to build project '$PROJECT'"
 
 INSTALL_CMD="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y"
 mk-build-deps -t "$INSTALL_CMD" -i -r debian/control
+
 dpkg-buildpackage \
     -j$(nproc --all) \
-    --buildinfo-option=-u"$OUT_ROOT" \
-    --changes-option=-u"$OUT_ROOT" \
     -b \
     --no-sign
 
-echo "Build successful, artifacts stored in '$OUT_ROOT'"
+mv $PROJECT_BUILDROOT/*.deb "$PROJECT_ROOT/$PROJECT"
+mv $PROJECT_BUILDROOT/*.ddeb "$PROJECT_ROOT/$PROJECT" || true
+echo "Build successful, artifacts stored in '$PROJECT_ROOT/$PROJECT'"

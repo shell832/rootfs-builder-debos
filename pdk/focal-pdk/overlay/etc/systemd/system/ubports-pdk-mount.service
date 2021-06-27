@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount PDK host directory
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+ExecStart=/bin/bash /usr/libexec/ubports-pdk-mount
+
+[Install]
+WantedBy=multi-user.target
