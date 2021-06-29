@@ -5,15 +5,40 @@ set -e
 PROJECT=""
 PROJECT_ROOT="/pdk/sources"
 
+function containsBranch {
+    BRANCH_LIST="$1"
+    PREFERRED_BRANCH="$2"
+    CONTAINS_BRANCH=$(echo "$BRANCH_LIST" | grep -q "$PREFERRED_BRANCH$" && echo 1 || echo 0)
+    echo "$CONTAINS_BRANCH"
+}
+
+function preferredBranch {
+    local REPO="$1"
+
+    BRANCHES=$(git ls-remote -h $REPO)
+
+    if [ $(containsBranch "$BRANCHES" "refs/heads/ubports/focal") == 1 ]; then
+        echo "ubports/focal"
+    elif [ $(containsBranch "$BRANCHES" "refs/heads/main") == 1 ]; then
+        echo "main"
+    fi
+}
+
 function tryPull {
-    CURL_OUTPUT=$(curl -I "$1" 2> /dev/null)
-    HTTP_RESPONSE=$(echo "$CURL_OUTPUT" | grep "^HTTP/2" | awk -F" " '{ print $2 }')
+    local REPO="$1"
+    local CURL_OUTPUT=$(curl -I "$REPO" 2> /dev/null)
+    local HTTP_RESPONSE=$(echo "$CURL_OUTPUT" | grep "^HTTP/2" | awk -F" " '{ print $2 }')
+
     if [ "$HTTP_RESPONSE" != "200" ]; then
         echo "Project doesn't seem to exist at '$1'..."
     else
         mkdir -p "$PROJECT_ROOT/$PROJECT"
         cd "$PROJECT_ROOT/$PROJECT"
-        git clone --recursive "$1" src && echo "Clone complete!" && exit 0
+        local BRANCH=$(preferredBranch $REPO)
+        if [ "$BRANCH" != "" ]; then
+            BRANCH_OPT="--branch $BRANCH"
+        fi
+        git clone $BRANCH_OPT --recursive "$1" src && echo "Clone complete!" && exit 0
     fi
 }
 
