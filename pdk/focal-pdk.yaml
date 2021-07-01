@@ -116,7 +116,7 @@ actions:
   - action: image-partition
     description: Creating image
     imagename: {{ $image }}
-    imagesize: 10GB
+    imagesize: 15GB
     partitiontype: msdos
     mountpoints:
       - mountpoint: /
