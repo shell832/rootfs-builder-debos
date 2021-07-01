@@ -71,7 +71,7 @@ actions:
       ubuntu-standard ubuntu-touch-session libnss-extrausers
       libqt5gui5-gles libqt5gui5-
       mir-graphics-drivers-desktop
-      repowerd pulseaudio
+      repowerd pulseaudio lxterminal
       nano bash-completion
       ubports-qa-scripts
     label: apt-install.sh
@@ -98,6 +98,11 @@ actions:
     chroot: true
     description: Create default user
     command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet
+
+  - action: run
+    chroot: true
+    description: Setting password on phablet user
+    command: echo phablet:phablet | chpasswd
 
   - action: overlay
     source: focal-pdk/overlay
