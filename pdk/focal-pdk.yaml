@@ -39,6 +39,18 @@ actions:
     script: ../scripts/add-and-pin-repo.sh http://repo2.ubports.com/ focal 2000
 
   - action: run
+    description: "[Temporary] add WIP repos"
+    # Note, this operation also updates packages in base image.
+    chroot: true
+    script: >-
+      ../scripts/add-and-pin-repo.sh
+      http://repo2.ubports.com/ focal_-_PR_lomiri-app-launch_9 2001
+      http://repo2.ubports.com/ focal_-_PR_indicator-network_1 2001
+      http://repo2.ubports.com/ focal_-_PR_lomiri_8 2001
+      http://repo2.ubports.com/ focal_-_PR_ubuntu-touch-session_18 2001
+      http://repo2.ubports.com/ focal_-_PR_repowerd_28 2001
+
+  - action: run
     description: Install minimal debugging things
     chroot: true
     script: >-
@@ -48,8 +60,21 @@ actions:
       linux-image-generic libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
       libglapi-mesa libgles2-mesa libglx-mesa0
-      libosmesa6 build-essential devscripts equivs git sshfs curl
+      libosmesa6 build-essential devscripts equivs git sshfs curl xterm
   # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
+
+  - action: run
+    description: Install packages
+    chroot: true
+    script: >-
+      ../scripts/apt-install.sh --no-install-recommends
+      ubuntu-standard ubuntu-touch-session libnss-extrausers
+      libqt5gui5-gles libqt5gui5-
+      mir-graphics-drivers-desktop
+      repowerd pulseaudio
+      nano bash-completion
+      ubports-qa-scripts
+    label: apt-install.sh
 
 {{ if eq $architecture "arm64" }}
   - action: run
@@ -68,6 +93,11 @@ actions:
       ../scripts/apt-install.sh
       grub-pc-bin
 {{ end }}
+
+  - action: run
+    chroot: true
+    description: Create default user
+    command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet
 
   - action: overlay
     source: focal-pdk/overlay
