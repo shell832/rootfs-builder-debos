@@ -72,7 +72,7 @@ mk-build-deps -t "$INSTALL_CMD" -i -r debian/control
 
 if [ "$ORIG_TARBALL" != "" ]; then
     for TARBALL in "${ORIG_TARBALL[@]}"; do
-        tar xvzf ../$TARBALL --skip-old-files --exclude=debian --strip-components 1 -C .
+        tar xvf ../$TARBALL --skip-old-files --exclude=debian --strip-components 1 -C .
     done
 fi
 
