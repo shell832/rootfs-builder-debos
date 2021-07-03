@@ -97,12 +97,7 @@ actions:
   - action: run
     chroot: true
     description: Create default user
-    command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet
-
-  - action: run
-    chroot: true
-    description: Setting password on phablet user
-    command: echo phablet:phablet | chpasswd
+    command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet && passwd -d phablet
 
   - action: overlay
     source: focal-pdk/overlay
