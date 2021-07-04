@@ -73,7 +73,7 @@ actions:
       mir-graphics-drivers-desktop
       repowerd pulseaudio lxterminal
       nano bash-completion
-      ubports-qa-scripts
+      ubports-qa-scripts gdb valgrind
     label: apt-install.sh
 
 {{ if eq $architecture "arm64" }}
