@@ -64,6 +64,12 @@ actions:
   # TODO: remove OpenSSH host keys and make it re-generate them on first boot.
 
   - action: run
+    description: Add Ubuntu debug symbols repos
+    chroot: true
+    script: >-
+      ../scripts/add-ubuntu-ddeb-repo.sh
+
+  - action: run
     description: Install packages
     chroot: true
     script: >-
