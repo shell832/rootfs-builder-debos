@@ -44,7 +44,6 @@ actions:
     chroot: true
     script: >-
       ../scripts/add-and-pin-repo.sh
-      http://repo2.ubports.com/ focal_-_PR_lomiri-app-launch_9 2001
       http://repo2.ubports.com/ focal_-_PR_indicator-network_1 2001
       http://repo2.ubports.com/ focal_-_PR_lomiri_8 2001
       http://repo2.ubports.com/ focal_-_PR_ubuntu-touch-session_18 2001
@@ -78,7 +77,7 @@ actions:
       libqt5gui5-gles libqt5gui5-
       mir-graphics-drivers-desktop
       repowerd pulseaudio lxterminal
-      nano bash-completion
+      nano bash-completion lomiri-greeter
       ubports-qa-scripts gdb valgrind
     label: apt-install.sh
 
