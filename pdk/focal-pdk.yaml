@@ -56,7 +56,7 @@ actions:
       ../scripts/apt-install.sh
       ubuntu-minimal network-manager
       wpasupplicant openssh-server rfkill
-      linux-image-generic libegl-mesa0
+      linux-image-generic-hwe-20.04 libegl-mesa0
       libgbm1 libgl1-mesa-dri libgl1-mesa-glx
       libglapi-mesa libgles2-mesa libglx-mesa0
       libosmesa6 build-essential devscripts equivs git sshfs curl xterm
