@@ -102,7 +102,7 @@ actions:
   - action: run
     chroot: true
     description: Create default user
-    command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet && passwd -d phablet
+    command: groupadd -g 32011 phablet && useradd -g 32011 -u 32011 -m phablet && passwd -d phablet && usermod -s /bin/bash phablet
 
   - action: overlay
     source: focal-pdk/overlay
