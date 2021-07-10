@@ -2,6 +2,13 @@
 
 set -e
 
+TRY_VIRTIOFS=$(mount -t virtiofs myfs /pdk/sources && echo 1 || echo 0)
+if [ "$TRY_VIRTIOFS" == "1" ]; then
+    echo "virtiofs mounted, done."
+    exit 0
+fi
+
+# The rest of this script is just for SSH-based mounting
 if [ ! -L /dev/disk/by-label/PDKSETTINGS ]; then
     echo "PDK settings partition missing"
     exit 1
