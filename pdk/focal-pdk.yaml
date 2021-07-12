@@ -81,11 +81,6 @@ actions:
       ubports-qa-scripts gdb valgrind
     label: apt-install.sh
 
-  - action: run
-    description: Enable adbd
-    chroot: true
-    command: systemctl enable adbd-pdk.service
-
 {{ if eq $architecture "arm64" }}
   - action: run
     chroot: true
@@ -113,6 +108,11 @@ actions:
     source: focal-pdk/overlay
     description: Adding generic overlay
     destination: /
+
+  - action: run
+    description: Enable adbd
+    chroot: true
+    command: systemctl enable adbd-pdk.service
 
   - action: pack
     file: {{ $tarball }}
