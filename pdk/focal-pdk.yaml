@@ -76,10 +76,15 @@ actions:
       ubuntu-standard ubuntu-touch-session libnss-extrausers
       libqt5gui5-gles libqt5gui5-
       mir-graphics-drivers-desktop qtubuntu-android
-      repowerd pulseaudio lxterminal
+      repowerd pulseaudio lxterminal adbd
       nano bash-completion lomiri-greeter
       ubports-qa-scripts gdb valgrind
     label: apt-install.sh
+
+  - action: run
+    description: Enable adbd
+    chroot: true
+    command: systemctl enable adbd-pdk.service
 
 {{ if eq $architecture "arm64" }}
   - action: run
