@@ -74,7 +74,7 @@ actions:
     script: >-
       ../scripts/apt-install.sh --no-install-recommends
       ubuntu-standard ubuntu-touch-session libnss-extrausers
-      libqt5gui5-gles libqt5gui5-
+      libqt5quick5 libqt5gui5
       mir-graphics-drivers-desktop qtubuntu-android
       repowerd pulseaudio lxterminal adbd
       nano bash-completion lomiri-greeter
