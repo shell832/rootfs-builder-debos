@@ -102,6 +102,9 @@ if [ "$(id -u phablet 2>/dev/null)" = "32011" ]; then
     fi
 fi
 
+# Workaround until Mesa Mir display detection is fixed
+export LD_PRELOAD=/usr/lib/$(dpkg-architecture -qDEB_TARGET_MULTIARCH)/mir/client-platform/mesa.so.5
+
 # And finally actually start the greeter
 exec env MIR_SERVER_FILE=$SUB_SOCKET MIR_SERVER_HOST_SOCKET=/run/mir_socket $TOUCH_WRAPPER $@ &
 CMD_PID=$!
