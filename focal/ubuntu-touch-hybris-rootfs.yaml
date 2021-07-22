@@ -11,7 +11,7 @@ actions:
     variables:
       architecture: {{ $architecture }}
       cdimagesmirror: {{ $cdimagesmirror }}
-      skip_remove_apt_user: false
+      skip_remove_apt_user: true
 
   - action: run
     descriptions: Run Ubuntu Touch early hooks
