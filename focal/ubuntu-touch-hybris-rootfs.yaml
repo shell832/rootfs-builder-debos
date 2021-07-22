@@ -14,6 +14,12 @@ actions:
       skip_remove_apt_user: false
 
   - action: run
+    descriptions: Run Ubuntu Touch early hooks
+    chroot: true
+    script: ./ubuntu-touch/hooks/run-hooks.sh chroot_early
+    label: run-parts
+
+  - action: run
     description: "[Temporary] add WIP repos"
     # Note, this operation also updates packages in base image.
     chroot: true
