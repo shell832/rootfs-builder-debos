@@ -21,15 +21,17 @@ actions:
     filename: SHA256SUMS
     name: SHA256SUMS
 
-  - action: run
-    description: Verify integrity of Ubuntu Base image.
-    command: cd /scratch && sha256sum --check --ignore-missing SHA256SUMS
-    label: sha256sum
-
   - action: unpack
     description: Unpacking rootfs
     origin: ubuntu-base.tar.gz
     compression: gz
+
+  # Must be done *after* unpack, otherwise $ROOTDIR is unset. $ROOTDIR/../ is
+  # the scratch dir. This is true regardless of fakemachine or not.
+  - action: run
+    description: Verify integrity of Ubuntu Base image.
+    command: cd $ROOTDIR/../ && pwd && sha256sum --check --ignore-missing SHA256SUMS
+    label: sha256sum
 
   - action: download
     description: Download UBports keyring
