@@ -35,6 +35,7 @@ actions:
       repowerd
       nano bash-completion
       ubports-qa-scripts
+      lomiri-system-settings
     label: apt-install.sh
 
   - action: overlay
