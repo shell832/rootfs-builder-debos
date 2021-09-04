@@ -39,14 +39,6 @@ actions:
     script: ../scripts/add-and-pin-repo.sh http://repo2.ubports.com/ focal 2000
 
   - action: run
-    description: "[Temporary] add WIP repos"
-    # Note, this operation also updates packages in base image.
-    chroot: true
-    script: >-
-      ../scripts/add-and-pin-repo.sh
-      http://repo2.ubports.com/ focal_-_PR_ubuntu-touch-session_18 2001
-
-  - action: run
     description: Install minimal debugging things
     chroot: true
     script: >-
