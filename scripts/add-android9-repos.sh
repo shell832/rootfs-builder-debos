@@ -11,7 +11,6 @@ export DEBCONF_NONINTERACTIVE_SEEN=true
 
 echo "deb http://repo.ubports.com/ xenial_-_android9 main" >> /etc/apt/sources.list.d/ubports-android9.list
 echo "deb http://repo.ubports.com/ xenial_-_android9_-_android10 main" >> /etc/apt/sources.list.d/ubports-android9.list
-echo "deb http://repo.ubports.com/ xenial_-_hidltest main" >> /etc/apt/sources.list.d/ubports-xenial_-_hidltest.list
 
 echo "Package: *" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin: release o=UBports,a=xenial_-_android9" >> /etc/apt/preferences.d/ubports-android9.pref
@@ -21,10 +20,6 @@ echo "" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Package: *" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin: release o=UBports,a=xenial_-_android9_-_android10" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin-Priority: 2011" >> /etc/apt/preferences.d/ubports-android9.pref
-
-echo "Package: *" >> /etc/apt/preferences.d/ubports-xenial_-_hidltest.pref
-echo "Pin: release o=UBports,a=xenial_-_hidltest" >> /etc/apt/preferences.d/ubports-xenial_-_hidltest.pref
-echo "Pin-Priority: 2011" >> /etc/apt/preferences.d/ubports-xenial_-_hidltest.pref
 
 if [ "$CHANNEL" == "edge" ]; then
     echo "deb http://repo.ubports.com/ xenial_-_edge_-_android9 main" >> /etc/apt/sources.list.d/ubports-android9.list
