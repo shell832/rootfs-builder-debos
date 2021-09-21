@@ -1,0 +1,30 @@
+#!/bin/sh -eux
+
+# Ubuntu Base comes with /etc/dpkg/dpkg.cfg.d/excludes which excludes things
+# not useful for embeded system, like us. However, we want to not-exclude
+# something (translations) while exclude a few more things.
+#
+# Run this before installing more software to be most effective.
+
+# First, don't exclude translations.
+# The lines were:
+# > # Drop all translations
+# > path-exclude=/usr/share/locale/*/LC_MESSAGES/*.mo
+# >
+sed -i -e '/^# Drop all translations$/,+2d' /etc/dpkg/dpkg.cfg.d/excludes
+
+# And now, some more excludes.
+
+cat >/etc/dpkg/dpkg.cfg.d/ubuntu-touch-excludes <<EOF
+# Exclude more things. This is based on 99-remove-documentation.chroot hook
+# for ubuntu-touch in rootfs-builder-debos.
+
+path-exclude=/usr/share/groff
+path-exclude=/usr/share/lintian
+path-exclude=/usr/share/linda
+EOF
+
+# Restore translations from packages which ship those.
+# Script copied from 'unminimize' script on ubuntu-base image.
+dpkg --verify --verify-format rpm | awk '/..5......   \/usr\/share\/locale/ {print $2}' | sed 's|/[^/]*$||' | sort | uniq \
+         | xargs dpkg -S | sed 's|, |\n|g;s|: [^:]*$||' | uniq | DEBIAN_FRONTEND=noninteractive xargs apt-get install --reinstall -y
