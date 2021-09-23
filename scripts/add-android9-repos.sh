@@ -14,6 +14,7 @@ echo "deb http://repo.ubports.com/ xenial_-_android9 main" >> /etc/apt/sources.l
 echo "Package: *" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin: release o=UBports,a=xenial_-_android9" >> /etc/apt/preferences.d/ubports-android9.pref
 echo "Pin-Priority: 2010" >> /etc/apt/preferences.d/ubports-android9.pref
+echo "" >> /etc/apt/preferences.d/ubports-android9.pref
 
 if [ "$CHANNEL" == "edge" ]; then
     echo "deb http://repo.ubports.com/ xenial_-_edge_-_android9 main" >> /etc/apt/sources.list.d/ubports-android9.list
