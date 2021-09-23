@@ -5,14 +5,16 @@
 # the default for this has to be false, hence the name.
 {{- $skip_remove_apt_user := or .skip_remove_apt_user false }}
 
+{{- $ubuntu_base := print "ubuntu-base-20.04.2-base-" $architecture ".tar.gz" }}
+
 architecture: {{ $architecture }}
 actions:
   - action: download
     description: Download Ubuntu Base, so that we don't have to run debootstrap
-    url: "{{ $cdimagesmirror }}/ubuntu-base/releases/focal/release/ubuntu-base-20.04.2-base-{{ $architecture }}.tar.gz"
+    url: "{{ $cdimagesmirror }}/ubuntu-base/releases/focal/release/{{ $ubuntu_base }}"
     unpack: false
-    filename: ubuntu-base-20.04.2-base-{{ $architecture }}.tar.gz
-    name: ubuntu-base.tar.gz
+    filename: {{ $ubuntu_base }}
+    name: {{ $ubuntu_base }}
 
   - action: download
     description: Download SHA256SUMS from Ubuntu's CDImage server
@@ -23,8 +25,7 @@ actions:
 
   - action: unpack
     description: Unpacking rootfs
-    origin: ubuntu-base.tar.gz
-    compression: gz
+    command: tar --numeric-owner -xzf {{ $ubuntu_base }} -C root
 
   # Must be done *after* unpack, otherwise $ROOTDIR is unset. $ROOTDIR/../ is
   # the scratch dir. This is true regardless of fakemachine or not.
