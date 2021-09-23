@@ -1,0 +1,37 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image (printf "ubuntu-touch-hybris-rootfs-android9-%s.tar.gz" $architecture) -}}
+{{- $cdimagesmirror := or .cdimagesmirror "http://cdimage.ubuntu.com" -}}
+{{- $additional_apt_repos := or .additional_apt_repos "" -}}
+{{- $phablet_password := or .phablet_password "" }}
+
+# DO NOT ADD OVERLAYS TO ANDROID9 HERE, PLACE THOSE IN DEBIAN PACKAGES!!!!!
+
+architecture: {{ $architecture }}
+actions:
+  - action: recipe
+    description: Setup hybris base rootfs
+    recipe: ubuntu-touch-hybris-base.yaml
+    variables:
+      architecture: {{ $architecture }}
+      cdimagesmirror: {{ $cdimagesmirror }}
+      additional_apt_repos: {{ $additional_apt_repos }}
+
+  - action: run
+    description: "Add android9 repo"
+    chroot: true
+    script: >-
+      ../scripts/add-and-pin-repo.sh
+      http://repo2.ubports.com/ focal_-_android9 2010
+
+  - action: run
+    chroot: true
+    description: Create directories for Android mounts
+    command: mkdir -p /android /mnt/vendor/persist /userdata && ln -s /android/data /data && ln -s /android/system /system && ln -s /android/vendor /vendor && ln -s /android/cache /cache && ln -s /android/persist /persist && ln -s /android/product /product && ln -s /android/metadata /metadata && ln -s /android/odm /odm && ln -s /android/apex /apex
+
+  - action: recipe
+    description: Finalizing image in for system-image consumption.
+    recipe: focal-finalize-system-image.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      phablet_password: {{ $phablet_password }}
