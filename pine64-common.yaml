@@ -80,3 +80,9 @@ actions:
   - action: run
     chroot: true
     script: scripts/try-depmod-installed.sh
+
+  - action: run
+    chroot: true
+    description: Install v4l-utils to control camera pipeline
+    label: apt
+    script: scripts/apt-install.sh v4l-utils
