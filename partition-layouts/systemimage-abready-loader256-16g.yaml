@@ -1,0 +1,129 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image "systemimage-abready-loader256-16g.img" -}}
+{{- $recovery_type_mount := or .recovery_type_mount "off" -}}
+
+# Creates a 16GiB rootfs in the mainline system-image layout where:
+# * The bootloader partition, 'loader', is placed at sector 256
+# * There are _a and _b partitions for each of 'boot' and 'recovery'
+# * The system partition is 2.5GB large
+# * The cache partition is the same size as the system partition
+# This enables future a/b updating
+
+# Call this after your rootfs is ready for overlaying, it needs to place an
+# fstab onto the rootfs.
+
+# Set recovery_type_mount to "on" if you would like to mount a tmpfs as / and
+# the partitions as their Android-style names (for example, the system partition
+# is mounted as /system instead of /)
+# recovery_type_mount will also prevent this recipe from performing tasks which
+# would normally set up the rootfs image for this type of partitioning
+
+# Remember to disable setup-fstab on filesystem-deploy when using this!
+
+architecture: {{ $architecture }}
+actions:
+
+{{ if eq $recovery_type_mount "on" }}
+  - action: run
+    description: Mount tmpfs as /
+    command: mkdir mnt && mount -t tmpfs tmpfs mnt/
+{{ end }}
+
+  - action: image-partition
+    description: Creating image
+    imagename: {{ $image }}
+    imagesize: 14.6GiB
+    partitiontype: gpt
+    mountpoints:
+{{ if eq $recovery_type_mount "on" }}
+      - mountpoint: /recovery
+        partition: recovery_a
+{{ else }}
+      - mountpoint: /
+        partition: system
+{{ end }}
+
+      - mountpoint: /boot
+        partition: boot_a
+
+      - mountpoint: /cache
+        partition: cache
+
+      - mountpoint: /data
+        partition: userdata
+
+      - mountpoint: /scr
+        partition: scr
+
+    partitions:
+      - name: loader
+        fs: none
+        start: 131072B
+        end: 2097K
+
+      - name: scr
+        fs: fat32
+        start: 2098K
+        end: 3146K
+        flags: [ legacy_boot ]
+
+      - name: persist
+        fs: ext2
+        start: 3147K
+        end: 11.5M
+
+      - name: boot_a
+        fs: ext2
+        start: 11.6M
+        end: 78.6M
+
+      - name: boot_b
+        fs: ext2
+        start: 78.7M
+        end: 146M
+
+      - name: recovery_a
+        fs: ext2
+        start: 146M
+        end: 213M
+
+      - name: recovery_b
+        fs: ext2
+        start: 213M
+        end: 280M
+
+      # Future second system partition
+      - name: cache
+        fs: ext2
+        start: 280M
+        end: 2840M
+
+      - name: system
+        fs: ext4
+        start: 2840M
+        end: 5400M
+        features:
+          - "^metadata_csum"
+
+      - name: userdata
+        fs: ext4
+        start: 5400M
+        end: 100%
+        features:
+          - "^metadata_csum"
+
+{{ if eq $recovery_type_mount "off" }}
+  - action: overlay
+    source: overlays/systemimage-abready/
+    destination: /overlay
+
+  - action: run
+    description: Create flipped system folders
+    chroot: true
+    command: mkdir /userdata && mkdir /android
+
+  - action: run
+    description: Create boot-as-kernel-storage links
+    chroot: true
+    command: ln -s /boot/modules/ /lib/modules
+{{ end }}

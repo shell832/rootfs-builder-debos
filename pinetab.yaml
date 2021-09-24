@@ -14,8 +14,8 @@ actions:
       debug: {{ $debug }}
 
   - action: overlay
-    source: pine64/pinetab
-    destination: /
+    source: overlays/pine64/pinetab
+    destination: /overlay
 
   - action: image-partition
     description: Creating image
@@ -32,8 +32,11 @@ actions:
         end: 100%
         flags: [ boot ]
 
-  - action: filesystem-deploy
-    description: Deploying filesystem into image
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
 
   - action: raw
     description: Installing bootloader
@@ -49,7 +52,7 @@ actions:
 
   - action: recipe
     description: Polish the image
-    recipe: polish.yaml
+    recipe: fragments/polish.yaml
     variables:
       architecture: {{ $architecture }}
       image: {{ $image }}

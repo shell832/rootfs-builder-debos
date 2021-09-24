@@ -14,32 +14,56 @@ actions:
       debug: {{ $debug }}
 
   - action: overlay
-    source: pine64/pinephone
-    destination: /
+    source: overlays/pine64/pinephone
+    destination: /overlay
 
-  - action: image-partition
-    description: Creating image
-    imagename: {{ $image }}
-    imagesize: 4GB
-    partitiontype: msdos
-    mountpoints:
-      - mountpoint: /
-        partition: ROOTFS
-    partitions:
-      - name: ROOTFS
-        fs: ext4
-        start: 1M
-        end: 100%
-        flags: [ boot ]
+  - action: recipe
+    recipe: partition-layouts/systemimage-abready-loader256-16g.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      mount_recovery: "on"
 
-  - action: filesystem-deploy
-    description: Deploying filesystem into image
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      setup_fstab: false
+      setup_kernel_cmdline: false
+
+  - action: download
+    description: Fetch JumpDrive
+    url: https://gitlab.com/ubports/core/jumpdrive-ubports/-/jobs/artifacts/ubports-recovery/download?job=build
+    name: jumpdrive
+    filename: jumpdrive.zip
+    unpack: true
+    compression: zip
+
+  - action: overlay
+    description: Copying JumpDrive initramfs to recovery partition
+    origin: jumpdrive
+    source: initramfs-pine64-pinephone.gz
+    destination: /recovery/initrd.img
+
+  - action: overlay
+    description: Copying JumpDrive kernel to recovery partition
+    origin: jumpdrive
+    source: kernel-sunxi.gz
+    destination: /recovery/vmlinuz
+
+  - action: overlay
+    description: Copying JumpDrive dtb to recovery partition
+    origin: jumpdrive
+    source: dtbs/sunxi/sun50i-a64-pinephone.dtb
+    destination: /recovery/dtb
 
   - action: raw
     description: Installing bootloader
     origin: u-boot
     source: u-boot-sunxi-with-spl-pinephone.bin
-    offset: 8192
+    partition: loader
+    offset: 0
 
   - action: recipe
     description: Common Pine64 end-of-image tasks
@@ -48,8 +72,14 @@ actions:
       architecture: {{ $architecture }}
 
   - action: recipe
+    recipe: fragments/ship-overlay-tarball.yaml
+    variables:
+      partitions: "loader scr persist boot_a:boot recovery_a:recovery"
+      device: pinephone
+
+  - action: recipe
     description: Polish the image
-    recipe: polish.yaml
+    recipe: fragments/polish.yaml
     variables:
       architecture: {{ $architecture }}
       image: {{ $image }}

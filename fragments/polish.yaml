@@ -1,0 +1,31 @@
+{{- $architecture := or .architecture "amd64" -}}
+{{- $image := or .image "pleasesetimage" -}}
+{{- $output_type := or .output_type "image" -}}
+# Common final steps to complete image files
+
+architecture: {{ $architecture }}
+actions:
+  - action: run
+    description: Remove apt caches to save space
+    chroot: true
+    command: rm -r /var/cache/apt/* /var/lib/apt/lists/*
+
+  - action: run
+    description: Fail if /overlay still exists (you need to use fragments/filesystem-deploy.yaml)
+    chroot: true
+    command: "test ! -e /overlay"
+
+  # This must be the final 'chroot: true' action in the recipe, or else
+  # /etc/localtime will be deleted by systemd-nspawn.
+  # See https://github.com/go-debos/debos/issues/180
+  - action: run
+    chroot: true
+    description: Set up /etc/writable links for timezone and friends
+    script: scripts/etc-writable.sh
+
+{{ if eq $output_type "image" }}
+  - action: run
+    description: Create bmap file
+    postprocess: true
+    command: bmaptool create {{ $image }} > {{ $image }}.bmap
+{{ end }}

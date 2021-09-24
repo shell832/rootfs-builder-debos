@@ -6,7 +6,7 @@ architecture: {{ $architecture }}
 actions:
   - action: recipe
     description: Setup core rootfs
-    recipe: mainline-rootfs-core.yaml
+    recipe: fragments/mainline-rootfs-core.yaml
     variables:
       architecture: {{ $architecture }}
       debug: {{ $debug }}
@@ -28,20 +28,15 @@ actions:
 
   - action: download
     description: Fetch u-boot build
-    url: https://gitlab.com/pine64-org/u-boot/-/jobs/artifacts/master/download?job=build
+    url: https://gitlab.com/pine64-org/u-boot/-/jobs/artifacts/universalsuperbox/testing-new-partitions/download?job=build
     name: u-boot
     filename: build.zip
     unpack: true
     compression: zip
-    
-  - action: overlay
-    source: pine64/overlay
-    destination: /
 
-  - action: run
-    chroot: true
-    description: Setting egl libs to use mesa
-    script: scripts/enable-mesa.sh
+  - action: overlay
+    source: overlays/pine64/all_a64
+    destination: /overlay
 
 {{ if eq $variant "mali" }}
   - action: recipe
@@ -50,6 +45,12 @@ actions:
     variables:
       architecture: {{ $architecture }}
 {{end}}
+
+  - action: run
+    chroot: true
+    description: Install configuration for read-only rootfs' initramfs
+    label: apt
+    script: scripts/apt-install.sh initramfs-tools-ubuntu-touch
 
   - action: overlay
     description: Copying kernel to rootfs
@@ -68,7 +69,7 @@ actions:
     chroot: true
     description: Installing kernel on rootfs (no debug packages)
     label: dpkg
-    command: dpkg -i /var/tmp/linux-image*pine64_*.deb
+    command: dpkg -i /var/tmp/linux-image*pine64_*.deb && /bin/rm /var/tmp/* -r
 {{ end }}
 
   - action: run

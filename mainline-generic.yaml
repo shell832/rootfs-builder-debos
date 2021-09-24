@@ -6,13 +6,11 @@ architecture: {{ $architecture }}
 actions:
   - action: recipe
     description: Setup core rootfs
-    recipe: mainline-rootfs-core.yaml
-    variables:
-      imagesuffix: -mainline-edge
+    recipe: fragments/mainline-rootfs-core.yaml
 
   - action: recipe
     description: Add linux-firmware package
-    recipe: mainline-rootfs-firmware.yaml
+    recipe: fragments/mainline-rootfs-firmware.yaml
     variables:
       architecture: {{ $architecture }}
 
@@ -56,14 +54,22 @@ actions:
   - action: run
     description: Update grub config
     chroot: true
-    command: update-grub
+    script: ./scripts/wget-dpkg.sh https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.4/linux-image-unsigned-5.4.0-050400-generic_5.4.0-050400.201911242031_amd64.deb
+
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
 
   - action: run
     description: Install grub efi and legacy boot
     chroot: true
     command: grub-install /dev/vda --target=i386-pc && grub-install --target=x86_64-efi --no-nvram --removable
 
-  - action: run
-    chroot: true
-    description: Setting egl libs to use mesa (for common rootfs)
-    script: scripts/enable-mesa.sh
+  - action: recipe
+    description: Polish the image
+    recipe: fragments/polish.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
