@@ -48,16 +48,15 @@ actions:
 
   - action: run
     chroot: true
-    description: Install configuration for read-only rootfs' initramfs
+    description: Installing WLAN/BT firmware on rootfs
     label: apt
-    script: scripts/apt-install.sh initramfs-tools-ubuntu-touch
+    command: apt install -y linux-firmware-rtlwifi linux-firmware-pine64-rtl8723-bt initramfs-tools-ubuntu-touch
 
   - action: overlay
     description: Copying kernel to rootfs
     origin: kernel
     source: .
     destination: /var/tmp/
-
 {{ if eq $debug "on" }}
   - action: run
     chroot: true
@@ -71,12 +70,6 @@ actions:
     label: dpkg
     command: dpkg -i /var/tmp/linux-image*pine64_*.deb && /bin/rm /var/tmp/* -r
 {{ end }}
-
-  - action: run
-    chroot: true
-    description: Installing WLAN/BT firmware on rootfs
-    label: apt
-    script: scripts/apt-install.sh linux-firmware-rtlwifi linux-firmware-pine64-rtl8723-bt
 
   - action: run
     chroot: true

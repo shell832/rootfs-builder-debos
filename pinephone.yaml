@@ -53,6 +53,7 @@ actions:
     destination: /recovery/vmlinuz
 
   - action: overlay
+
     description: Copying JumpDrive dtb to recovery partition
     origin: jumpdrive
     source: dtbs/sunxi/sun50i-a64-pinephone.dtb
@@ -62,20 +63,7 @@ actions:
     description: Installing bootloader
     origin: u-boot
     source: u-boot-sunxi-with-spl-pinephone.bin
-    partition: loader
-    offset: 0
-
-  - action: recipe
-    description: Common Pine64 end-of-image tasks
-    recipe: pine64-common-end.yaml
-    variables:
-      architecture: {{ $architecture }}
-
-  - action: recipe
-    recipe: fragments/ship-overlay-tarball.yaml
-    variables:
-      partitions: "loader scr persist boot_a:boot recovery_a:recovery"
-      device: pinephone
+    offset: 8192
 
   - action: recipe
     description: Polish the image

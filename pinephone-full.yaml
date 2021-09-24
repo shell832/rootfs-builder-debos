@@ -1,0 +1,135 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image "ubuntu-touch-pinephone.img" -}}
+{{- $variant := or .variant "lima" -}}
+{{- $debug := or .debug "off" -}}
+
+architecture: {{ $architecture }}
+actions:
+  - action: image-partition
+    description: Creating image
+    imagename: {{ $image }}
+    imagesize: 8GB
+    partitiontype: gpt
+    mountpoints:
+      - mountpoint: /
+        partition: persist
+
+      - mountpoint: /userdata
+        partition: userdata
+
+      - mountpoint: /scr
+        partition: scr
+
+      - mountpoint: /boot
+        partition: boot_a
+
+      - mountpoint: /recovery
+        partition: recovery_a
+
+      - mountpoint: /cache
+        partition: cache
+
+    partitions:
+      - name: loader
+        fs: none
+        start: 131072B
+        end: 2097K
+
+      - name: scr
+        fs: ext2
+        start: 2098K
+        end: 3146K
+        flags: [ legacy_boot ]
+
+      - name: persist
+        fs: ext2
+        start: 3147K
+        end: 11.5M
+
+      - name: boot_a
+        fs: ext4
+        start: 11.6M
+        end: 78.6M
+
+      - name: boot_b
+        fs: ext4
+        start: 78.7M
+        end: 146M
+
+      - name: recovery_a
+        fs: ext4
+        start: 146M
+        end: 213M
+
+      - name: recovery_b
+        fs: ext4
+        start: 213M
+        end: 280M
+
+      - name: cache
+        fs: ext4
+        start: 280M
+        end: 1280M
+
+      - name: userdata
+        fs: ext4
+        start: 1280M
+        end: 100%
+
+  - action: run
+    description: Create /userdata/system.img and flip it to become /
+    chroot: false
+    script: scripts/setup-flipped-system.sh
+
+  - action: recipe
+    description: Pine64 common
+    recipe: pine64-common.yaml
+    variables:
+      architecture: {{ $architecture }}
+      variant: {{ $variant }}
+      debug: {{ $debug }}
+
+  - action: filesystem-deploy
+    description: Deploying filesystem into image
+
+  - action: overlay
+    source: pine64/pinephone
+    destination: /
+
+  - action: run
+    description: Set boot-pinephone to default
+    chroot: true
+    command: cp -av /boot/boot-pinephone.scr /scr/boot.scr
+
+  - action: run
+    description: Build initramfs
+    chroot: true
+    command: sudo update-initramfs -u
+
+  - action: run
+    description: Copy dtb to boot partition
+    chroot: true
+    command: cp -av /usr/lib/linux-image-*-pine64/allwinner/*pine*.dtb /boot/
+
+  - action: run
+    description: Link default dtb
+    chroot: true
+    command: rm /boot/dtb && ln -sf sun50i-a64-pinephone.dtb /boot/dtb
+
+  - action: run
+    description: Create /userdata/system.img and flip it to become /
+    chroot: true
+    script: scripts/flipped-system-links.sh
+
+  - action: raw
+    description: Installing bootloader
+    origin: u-boot
+    source: u-boot-sunxi-with-spl-pinephone.bin
+    offset: 131072
+
+  - action: recipe
+    description: Polish the image
+    recipe: polish.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
