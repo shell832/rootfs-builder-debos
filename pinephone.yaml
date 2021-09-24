@@ -53,6 +53,7 @@ actions:
     destination: /recovery/vmlinuz
 
   - action: overlay
+
     description: Copying JumpDrive dtb to recovery partition
     origin: jumpdrive
     source: dtbs/sunxi/sun50i-a64-pinephone.dtb
