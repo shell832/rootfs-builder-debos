@@ -1,0 +1,23 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image (printf "ubuntu-touch-hybris-rootfs-%s.tar.gz" $architecture) -}}
+{{- $cdimagesmirror := or .cdimagesmirror "http://cdimage.ubuntu.com" -}}
+{{- $additional_apt_repos := or .additional_apt_repos "" -}}
+{{- $phablet_password := or .phablet_password "" }}
+
+architecture: {{ $architecture }}
+actions:
+  - action: recipe
+    description: Setup hybris base rootfs
+    recipe: ubuntu-touch-hybris-base.yaml
+    variables:
+      architecture: {{ $architecture }}
+      cdimagesmirror: {{ $cdimagesmirror }}
+      additional_apt_repos: {{ $additional_apt_repos }}
+
+  - action: recipe
+    description: Finalizing image in for system-image consumption.
+    recipe: focal-finalize-system-image.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      phablet_password: {{ $phablet_password }}

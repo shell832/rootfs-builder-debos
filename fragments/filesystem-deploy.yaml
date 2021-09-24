@@ -1,0 +1,29 @@
+{{- $architecture := or .architecture "amd64" -}}
+{{- $image := or .image "pleasesetimage" -}}
+{{- $setup_fstab := or .setup_fstab true -}}
+{{- $setup_kernel_cmdline := or .setup_kernel_cmdline true -}}
+
+# All overlays in our recipes should copy their files to /overlay on the image.
+# This recipe moves /overlay out of the image, overlays the files (basically
+# "rsync -a /overlay/* /"), then deploys the filesystem as normal.
+# In other words, overlay your files into "/overlay" then call this recipe
+# in place of 'action: filesystem-deploy'
+
+# Once this recipe completes, most actions acting on "/" are acting on the real
+# image's root filesystem. However, the folder "/scratch/overlaydir" (outside
+# of the image and without a chroot) contains the old overlay.
+
+architecture: {{ $architecture }}
+actions:
+  - action: overlay
+    origin: filesystem
+    source: /overlay
+    destination: /
+
+  - action: run
+    command: "mv /scratch/root/overlay/ /scratch/overlaydir"
+
+  - action: filesystem-deploy
+    description: Deploying filesystem into image
+    setup-fstab: {{ $setup_fstab }}
+    setup-kernel-cmdline: {{ $setup_kernel_cmdline }}

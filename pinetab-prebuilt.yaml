@@ -1,0 +1,13 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image "ubuntu-touch-pinetab.img" -}}
+{{- $channel := or .channel "16.04/arm64/mainline/stable" -}}
+
+architecture: {{ $architecture }}
+actions:
+  - action: recipe
+    recipe: systemimage-builder.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      device: 'pinetab'
+      channel: {{ $channel }}

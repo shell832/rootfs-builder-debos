@@ -1,0 +1,37 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $image := or .image "device" -}}
+{{- $device := or .device "unspecified" -}}
+{{- $partitions := or .partitions "" -}}
+
+# Makes a device.tar.xz from the /scratch/overlaydir/ directory created by
+# filesystem-deploy.yaml and the partitions specified as a space-separated list
+# in $partitions. Expects filesystem-deploy.yaml has run first.
+
+# In addition to space-separating the list, you may specify each partition as
+# label:destination where "label" is the partition's label (as specified as
+# "name" in the partitions list on action: image-partition) and destination
+# is the final filename minus ".img". For example, "boot_a:boot" will save the
+# contents of the partition with label "boot_a" as "boot.img".
+
+architecture: {{ $architecture }}
+actions:
+  - action: run
+    description: Move modules onto boot partition
+    chroot: true
+    command: mv /lib/modules/ /boot/modules && ln -fs /boot/modules/ /lib/modules
+
+  - action: run
+    description: Make images of requested partitions
+    script: scripts/ship-image-files.sh '{{ $partitions }}' /scratch/partitions/
+
+  - action: run
+    description: Copy files into position for saving
+    command: mkdir -p /scratch/deviceimage/ && cp -r /scratch/overlaydir/ /scratch/deviceimage/system && cp -r /scratch/partitions/ /scratch/deviceimage/partitions
+
+  - action: run
+    description: Create archive from overlay and partition images
+    command: tar -cvzf /scratch/{{ $device }}-device.tar.gz --directory=/scratch/deviceimage/ system/ partitions/
+
+  - action: run
+    description: Copy archive to artifacts directory
+    command: cp /scratch/{{ $device }}-device.tar.gz /root/

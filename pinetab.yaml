@@ -13,14 +13,9 @@ actions:
       variant: {{ $variant }}
       debug: {{ $debug }}
 
-  - action: run
-    description: Set boot-pinetab to default
-    chroot: true
-    command: cp -av /boot/boot-pinetab.scr /boot/boot.scr
-
   - action: overlay
-    source: pine64/pinetab
-    destination: /
+    source: overlays/pine64/pinetab
+    destination: /overlay
 
   - action: image-partition
     description: Creating image
@@ -37,18 +32,27 @@ actions:
         end: 100%
         flags: [ boot ]
 
-  - action: filesystem-deploy
-    description: Deploying filesystem into image
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
 
   - action: raw
     description: Installing bootloader
     origin: u-boot
-    source: u-boot-sunxi-with-spl-sopine.bin
+    source: u-boot-sunxi-with-spl-pinephone.bin
     offset: 8192
 
   - action: recipe
+    description: Common Pine64 end-of-image tasks
+    recipe: pine64-common-end.yaml
+    variables:
+      architecture: {{ $architecture }}
+
+  - action: recipe
     description: Polish the image
-    recipe: polish.yaml
+    recipe: fragments/polish.yaml
     variables:
       architecture: {{ $architecture }}
       image: {{ $image }}

@@ -14,7 +14,7 @@ actions:
     description: Copying mali driver to rootfs
     origin: malidriver
     source: .
-    destination: /
+    destination: /overlay
 
     # This needs to be done before update-initramfs (done by installing kernel with dpkg)
   - action: run

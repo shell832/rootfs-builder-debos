@@ -13,32 +13,50 @@ actions:
       variant: {{ $variant }}
       debug: {{ $debug }}
 
-  - action: run
-    description: Set boot-pinephone to default
-    chroot: true
-    command: cp -av /boot/boot-pinephone.scr /boot/boot.scr
+  - action: overlay
+    source: overlays/pine64/pinephone
+    destination: /overlay
+
+  - action: recipe
+    recipe: partition-layouts/systemimage-abready-loader256-16g.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      mount_recovery: "on"
+
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
+      setup_fstab: false
+      setup_kernel_cmdline: false
+
+  - action: download
+    description: Fetch JumpDrive
+    url: https://gitlab.com/ubports/core/jumpdrive-ubports/-/jobs/artifacts/ubports-recovery/download?job=build
+    name: jumpdrive
+    filename: jumpdrive.zip
+    unpack: true
+    compression: zip
 
   - action: overlay
-    source: pine64/pinephone
-    destination: /
+    description: Copying JumpDrive initramfs to recovery partition
+    origin: jumpdrive
+    source: initramfs-pine64-pinephone.gz
+    destination: /recovery/initrd.img
 
-  - action: image-partition
-    description: Creating image
-    imagename: {{ $image }}
-    imagesize: 4GB
-    partitiontype: msdos
-    mountpoints:
-      - mountpoint: /
-        partition: ROOTFS
-    partitions:
-      - name: ROOTFS
-        fs: ext4
-        start: 1M
-        end: 100%
-        flags: [ boot ]
+  - action: overlay
+    description: Copying JumpDrive kernel to recovery partition
+    origin: jumpdrive
+    source: kernel-sunxi.gz
+    destination: /recovery/vmlinuz
 
-  - action: filesystem-deploy
-    description: Deploying filesystem into image
+  - action: overlay
+    description: Copying JumpDrive dtb to recovery partition
+    origin: jumpdrive
+    source: dtbs/sunxi/sun50i-a64-pinephone.dtb
+    destination: /recovery/dtb
 
   - action: raw
     description: Installing bootloader
@@ -48,7 +66,7 @@ actions:
 
   - action: recipe
     description: Polish the image
-    recipe: polish.yaml
+    recipe: fragments/polish.yaml
     variables:
       architecture: {{ $architecture }}
       image: {{ $image }}

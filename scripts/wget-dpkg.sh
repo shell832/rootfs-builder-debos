@@ -1,17 +1,19 @@
 #!/bin/sh
 
+set -e
+
 # This is a hack to fix the damn network problems with debos/fakemachine
 
-# Hack my damn network!
+# Work around resolver failure in debos' fakemachine
 mv /etc/resolv.conf /etc/resolv2.conf
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 
 mkdir -p /var/tmp/inst
 cd /var/tmp/inst
 wget $1
-dpkg -i *.deb
+sudo apt install -y ./*.deb
 rm -r /var/tmp/inst
 
-# Bring back my damn network
+# Undo changes to work around debos fakemachine resolver
 rm /etc/resolv.conf
 mv /etc/resolv2.conf /etc/resolv.conf

@@ -32,8 +32,11 @@ actions:
         end: 100%
         flags: [ boot ]
 
-  - action: filesystem-deploy
-    description: Deploying filesystem into image
+  - action: recipe
+    recipe: fragments/filesystem-deploy.yaml
+    variables:
+      architecture: {{ $architecture }}
+      image: {{ $image }}
 
   - action: raw
     description: Installing bootloader
@@ -43,7 +46,7 @@ actions:
 
   - action: recipe
     description: Polish the image
-    recipe: polish.yaml
+    recipe: fragments/polish.yaml
     variables:
       architecture: {{ $architecture }}
       image: {{ $image }}

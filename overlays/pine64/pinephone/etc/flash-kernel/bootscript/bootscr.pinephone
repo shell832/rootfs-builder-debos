@@ -1,0 +1,74 @@
+if test ${devnum} = 0; then
+  setenv linux_devnum 0
+else
+  # Because wifi takes /dev/mmcblk1, eMMC becomes /dev/mmcblk2
+  setenv linux_devnum 2
+fi
+
+setenv bootargs systempart=/dev/mmcblk${linux_devnum}p9 devnum=${linux_devnum} logo.nologo vt.global_cursor_default=0
+setenv kernel_addr_z 0x44080000
+
+if test -n "${console}"; then
+  setenv bootargs "${bootargs} console=${console}"
+fi
+
+setenv bootargs @@LINUX_KERNEL_CMDLINE_DEFAULTS@@ ${bootargs} @@LINUX_KERNEL_CMDLINE@@
+
+echo "[UBPORTS] Bootargs are" ${bootargs}
+echo "[UBPORTS] Beginning load"
+
+if test "${volume_key}" = "up" -o -e ${devtype} ${devnum}:3 reboot-recovery; then
+    # recovery-a partition
+    setenv partnum 6
+    # Yellow
+    gpio clear 114; gpio clear 115; gpio clear 116
+    gpio set 114; gpio set 115
+else
+    #boot-a partition
+    setenv partnum 4
+    # White
+    gpio clear 114; gpio clear 115; gpio clear 116
+    gpio set 114; gpio set 115; gpio set 116
+fi
+
+@@UBOOT_ENV_EXTRA@@
+
+if test -z "${fk_kvers}"; then
+   setenv fk_kvers '@@KERNEL_VERSION@@'
+fi
+
+setenv devfragment "${devtype} ${devnum}:${partnum}"
+
+setenv kernel_addr_z 0x44080000
+part uuid ${devfragment} uuid
+
+setenv fdtpath dtb-${fk_kvers}
+
+printenv
+@@UBOOT_PREBOOT_EXTRA@@
+
+if load ${devfragment} ${kernel_addr_z} ${prefix}vmlinuz-${fk_kvers} || load ${devfragment} ${kernel_addr_z} vmlinuz; then
+  unzip ${kernel_addr_z} ${kernel_addr_r}
+  echo "[UBPORTS] kernel uncompressed"
+  if load ${devfragment} ${fdt_addr_r} ${prefix}${fdtpath} || load ${devfragment} ${fdt_addr_r} dtb; then
+    echo "Booting with dt file ..."
+    if load ${devfragment} ${ramdisk_addr_r} ${prefix}initrd.img-${fk_kvers} || load ${devfragment} ${ramdisk_addr_r} initrd.img ; then
+      echo "[UBPORTS] Booting kernel with initramfs"
+      # Green
+      gpio clear 114; gpio clear 115; gpio clear 116
+      gpio set 114
+
+      booti ${kernel_addr_r} ${ramdisk_addr_r}:${filesize} ${fdt_addr_r};
+    else
+      # The lack of an initramfs is a bug in ubuntu touch images
+      echo "[UBPORTS] Refusing to boot kernel without initramfs"
+      reset
+    fi
+  else
+    echo "[UBPORTS] Failed to load dtb"
+  fi
+else
+  echo "[UBPORTS] Failed to load kernel"
+fi
+
+reset

@@ -1,0 +1,16 @@
+image:
+  name: 'godebos/debos'
+  entrypoint:
+    - ''
+
+stages:
+  - build
+
+focal-hybris:
+  stage: build
+  script:
+    # - apt-get update
+    # - apt-get dist-upgrade -y
+    # - apt-get install --no-install-recommends -y debos ca-certificates user-mode-linux libslirp-helper
+    - mount -o remount,exec,size=500M /dev/shm
+    - /usr/local/bin/debos --scratchsize 10G -v -m 256M --fakemachine-backend=kvm focal/ubuntu-touch-hybris-rootfs.yaml
