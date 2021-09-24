@@ -95,9 +95,8 @@ actions:
     command: mkdir mnt/cache/recovery/
 
   - action: run
-    description: Fetches and prepares system image install
-    script: scripts/fetch-and-prepare-latest-ota.sh '{{ $channel }}' '{{ $device }}' 'mnt/cache/recovery/'
-
+    description: Fetches and prepeares system image install
+    script: scripts/fetch-and-prepeare-latest-ota.sh '{{ $channel }}' {{ $device }}' 'mnt/cache/recovery/'
   - action: run
     description: extract device tarball partitions for writing
     chroot: false

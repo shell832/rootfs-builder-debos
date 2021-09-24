@@ -1,3 +1,3 @@
 FROM docker.io/godebos/debos
 
-RUN apt update && apt install -y zerofree jq
+RUN apt update && apt install zerofree jq
