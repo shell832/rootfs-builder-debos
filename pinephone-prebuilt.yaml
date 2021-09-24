@@ -1,11 +1,6 @@
 {{- $architecture := or .architecture "arm64" -}}
 {{- $image := or .image "ubuntu-touch-pinephone.img" -}}
-
-# Creates a prebuilt system-image capable image
-
-# Looking at this recipe, you may be asking yourself "why is this even a debos
-# recipe?"
-# That is a very good question.
+{{- $channel := or .channel "16.04/arm64/mainline/stable" -}}
 
 architecture: {{ $architecture }}
 actions:

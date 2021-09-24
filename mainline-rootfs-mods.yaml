@@ -1,0 +1,31 @@
+{{- $architecture := or .architecture "arm64" -}}
+{{- $debug := or .debug "off" -}}
+
+architecture: {{ $architecture }}
+actions:
+  - action: overlay
+    source: mods-overlay
+    description: Adding mods overlay
+    destination: /
+
+  - action: run
+    description: Disable HWE
+    chroot: true
+    command: rm -f /etc/apt/sources.list.d/ubuntu-esm-infra.list
+
+{{ if eq $debug "on" }}
+  - action: run
+    chroot: true
+    description: Setting password on phablet user
+    command: echo phablet:phablet | chpasswd
+{{ end }}
+
+  - action: run
+    chroot: true
+    description: Adding mainline repos
+    script: scripts/add-mainline-repos.sh
+
+  - action: run
+    chroot: true
+    description: Setting egl libs to use mesa (for common rootfs)
+    script: scripts/enable-mesa.sh

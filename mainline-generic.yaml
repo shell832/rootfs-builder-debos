@@ -17,30 +17,42 @@ actions:
   - action: image-partition
     description: Creating image
     imagename: {{ $image }}
-    imagesize: 4GB
+    imagesize: 5GB
     partitiontype: msdos
     mountpoints:
       - mountpoint: /
         partition: ROOTFS
+      - mountpoint: /boot/efi
+        partition: EFI
     partitions:
+      - name: EFI
+        fs: vfat
+        start: 1M
+        end: 50M
+        parttype: EF
+        flags: [ esp ]
       - name: ROOTFS
         fs: ext4
-        start: 1M
+        start: 50M
         end: 100%
-        flags: [ boot ]
+        features:
+          - "^metadata_csum"
 
   - action: run
     description: Install deps
     chroot: true
-    script: ./scripts/apt-install.sh grub-pc linux-generic
+    script: ./scripts/apt-install.sh grub-pc-bin grub-efi-amd64-signed shim-signed
+
+  - action: filesystem-deploy
+    description: Deploying filesystem into image
 
   - action: run
-    description: Install kernel modules
+    description: Set up grub config
     chroot: true
-    script: ./scripts/wget-dpkg.sh https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.4/linux-modules-5.4.0-050400-generic_5.4.0-050400.201911242031_amd64.deb
+    command: sed -i "s/quiet splash/rw/g" /etc/default/grub
 
   - action: run
-    description: Install kernel
+    description: Update grub config
     chroot: true
     script: ./scripts/wget-dpkg.sh https://kernel.ubuntu.com/~kernel-ppa/mainline/v5.4/linux-image-unsigned-5.4.0-050400-generic_5.4.0-050400.201911242031_amd64.deb
 
@@ -51,9 +63,9 @@ actions:
       image: {{ $image }}
 
   - action: run
-    description: Install bootloader (grub)
+    description: Install grub efi and legacy boot
     chroot: true
-    command: sed -i "s/quiet splash/rw/g" /etc/default/grub && grub-install /dev/vda && update-grub
+    command: grub-install /dev/vda --target=i386-pc && grub-install --target=x86_64-efi --no-nvram --removable
 
   - action: recipe
     description: Polish the image
