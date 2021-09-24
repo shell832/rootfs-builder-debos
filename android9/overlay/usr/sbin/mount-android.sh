@@ -8,7 +8,7 @@ find_partition_path() {
     label=$1
     path="/dev/$label"
     # In case fstab provides /dev/mmcblk0p* lines
-    for dir in by-partlabel by-name by-label by-path by-uuid by-partuuid by-id; do
+    for dir in by-partlabel by-name by-label ../mapper by-path by-uuid by-partuuid by-id; do
         # On A/B systems not all of the partitions are duplicated, so we have to check with and without suffix
         if [ -e "/dev/disk/$dir/$label$ab_slot_suffix" ]; then
             path="/dev/disk/$dir/$label$ab_slot_suffix"
@@ -32,36 +32,84 @@ parse_mount_flags() {
     echo $options
 }
 
+if [ -e /dev/.halium_jumpercable ]; then
+    echo "jumpercable boot detected, retriggering udev setup"
+    udevadm trigger --action=add
+    udevadm settle
+fi
+
 echo "checking for vendor mount point"
 
-sys_vendor="/sys/firmware/devicetree/base/firmware/android/fstab/vendor"
-if [ -e $sys_vendor ]; then
-    label=$(cat $sys_vendor/dev | awk -F/ '{print $NF}')
-    path=$(find_partition_path $label)
-    [ ! -e "$path" ] && exit "Error vendor not found"
-    type=$(cat $sys_vendor/type)
-    options=$(parse_mount_flags $(cat $sys_vendor/mnt_flags))
+vendor_images="/userdata/vendor.img /var/lib/lxc/android/vendor.img"
+for image in $vendor_images; do
+    if [ -e $image ]; then
+        echo "mounting vendor from $image"
+        mount $image /vendor -o ro
+    fi
+done
+
+if ! mountpoint -q -- /vendor; then
+    sys_vendor="/sys/firmware/devicetree/base/firmware/android/fstab/vendor"
+    default_vendor=$(find_partition_path "vendor")
+    if [ -e $sys_vendor ]; then
+        label=$(cat $sys_vendor/dev | awk -F/ '{print $NF}')
+        path=$(find_partition_path $label)
+        [ ! -e "$path" ] && echo "Error vendor not found" && exit
+        type=$(cat $sys_vendor/type)
+        options=$(parse_mount_flags $(cat $sys_vendor/mnt_flags))
+    elif [ -n $default_vendor ] && [ -e $default_vendor ]; then
+        # default to a partition labeled "vendor" even if not in DT fstab
+        path=$default_vendor
+        type=ext4
+        options=ro
+    fi
     echo "mounting $path as /vendor"
     mount $path /vendor -t $type -o $options
 fi
+
+# mount tmpfs for vendor mounts
+mount -t tmpfs tmpfs /mnt/vendor
 
 sys_persist="/sys/firmware/devicetree/base/firmware/android/fstab/persist"
 if [ -e $sys_persist ]; then
     label=$(cat $sys_persist/dev | awk -F/ '{print $NF}')
     path=$(find_partition_path $label)
-    # [ ! -e "$path" ] && exit "Error persist not found"
+    # [ ! -e "$path" ] && echo "Error persist not found" && exit
     type=$(cat $sys_persist/type)
     options=$(parse_mount_flags $(cat $sys_persist/mnt_flags))
-    echo "mounting $path as /mnt/vendor/persist"
-    mount $path /mnt/vendor/persist -t $type -o $options
+    if [ -e $sys_persist/mnt_point ]; then
+        target=`cat $sys_persist/mnt_point`
+        echo "mounting $path as $target"
+        mkdir -p $target
+        mount $path $target -t $type -o $options
+    else
+        # if there is no indication that persist should be mounted elsewhere, default to old location
+        echo "mounting $path as /persist and /mnt/vendor/persist"
+        mount $path /persist -t $type -o $options
+        mkdir -p /mnt/vendor/persist
+        mount $path /mnt/vendor/persist -t $type -o $options
+    fi
 fi
 
-# Assume there's only one fstab in vendor
+if [ -e "/apex" ]; then
+    mount -t tmpfs tmpfs /apex
+
+    for path in "/system/apex/com.android.runtime.release" "/system/apex/com.android.runtime.debug"; do
+        if [ -e "$path" ]; then
+            mkdir -p /apex/com.android.runtime
+            mount -o bind $path /apex/com.android.runtime
+            break
+        fi
+    done
+fi
+
+# List all fstab files
 fstab=$(ls /vendor/etc/fstab*)
-[ ! -e "$fstab" ] && echo "fstab not found" && exit
+[ -z "$fstab" ] && echo "fstab not found" && exit
 
 echo "checking fstab $fstab for additional mount points"
 
+# If there's more than one file, this will simply concatinate them together
 cat ${fstab} | while read line; do
     set -- $line
 
@@ -83,9 +131,27 @@ cat ${fstab} | while read line; do
 
     path=$(find_partition_path $label)
 
+    if [ ! -e "$path" ]; then
+        partition_images="/userdata/$label.img /var/lib/lxc/android/$label.img"
+        for image in $partition_images; do
+            if [ -e $image ]; then
+                path="$image"
+            fi
+        done
+    fi
+
     [ ! -e "$path" ] && continue
 
     mkdir -p $2
     echo "mounting $path as $2"
     mount $path $2 -t $3 -o $(parse_mount_flags $4)
 done
+
+# Provide a bind mount from /cache to /userdata/cache on systems without a dedicated cache partition
+if [ ! -e cache ]; then
+    if [ ! -d /data/cache ]; then
+        mkdir /data/cache
+    fi
+    mkdir /android/cache
+    mount -o bind /data/cache /android/cache
+fi

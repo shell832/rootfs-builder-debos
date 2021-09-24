@@ -18,7 +18,7 @@ actions:
   - action: image-partition
     description: Creating image
     imagename: {{ $image }}
-    imagesize: 14.6GiB
+    imagesize: 6GiB
     partitiontype: gpt
     mountpoints:
       - mountpoint: /cache
@@ -97,7 +97,6 @@ actions:
   - action: run
     description: Fetches and prepeares system image install
     script: scripts/fetch-and-prepeare-latest-ota.sh '{{ $channel }}' {{ $device }}' 'mnt/cache/recovery/'
-
   - action: run
     description: extract device tarball partitions for writing
     chroot: false

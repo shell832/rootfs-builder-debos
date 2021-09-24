@@ -1,25 +1,36 @@
 {{- $architecture := or .architecture "armhf" -}}
 {{- $image := or .image (printf "ubuntu-touch-android9-%s.tar.gz" $architecture) -}}
 {{- $output_type := "tarball" -}}
+{{- $channel := or .channel "devel" -}}
 
 architecture: {{ $architecture }}
 actions:
   - action: download
     description: Download latest ubuntu touch rootfs from CI
+{{ if eq $channel "devel" }}
+{{ if eq $architecture "arm64" }}
+    url: "https://ci.ubports.com/job/xenial-hybris-rootfs-{{ $architecture }}/lastSuccessfulBuild/artifact/out/ubuntu-touch-hybris-xenial-{{ $architecture }}-rootfs.tar.gz"
+{{ end }}{{ if eq $architecture "armhf" }}
+    url: "https://ci.ubports.com/job/xenial-rootfs-{{ $architecture }}/lastSuccessfulBuild/artifact/out/ubports-touch.rootfs-xenial-{{ $architecture }}.tar.gz"
+{{ end }}{{ end }}
+{{ if eq $channel "edge" }}
     url: "https://ci.ubports.com/job/xenial-hybris-edge-rootfs-{{ $architecture }}/lastSuccessfulBuild/artifact/out/ubuntu-touch-hybris-xenial-edge-{{ $architecture }}-rootfs.tar.gz"
+{{ end }}
     unpack: false
     filename: ut-rootfs.tar.gz
     name: ut-rootfs.tar.gz
 
-  - action: unpack
+  # Instead of an unpack action we use a run action here as a workaround to
+  # https://github.com/go-debos/debos/issues/286 and
+  # https://gitlab.com/ubports/community-ports/android10/project-management/-/issues/9
+  - action: run
     description: Unpacking rootfs
-    origin: ut-rootfs.tar.gz
-    compression: gz
+    command: tar --numeric-owner -xzf ut-rootfs.tar.gz -C root
 
   - action: run
     chroot: true
-    description: Adding Android 8/9 packages
-    script: scripts/add-android8-repos.sh
+    description: Adding Android 9 packages
+    script: scripts/add-android9-repos.sh {{ $channel }}
 
   - action: overlay
     source: android9/overlay
@@ -29,17 +40,12 @@ actions:
   - action: run
     chroot: true
     description: Create directories for Android mounts
-    command: mkdir -p /android /mnt/vendor/persist /userdata && ln -s /android/data /data && ln -s /android/system /system && ln -s /android/vendor /vendor && ln -s /android/cache /cache && ln -s /android/persist /persist && ln -s /android/product /product && ln -s /android/metadata /metadata
+    command: mkdir -p /android /mnt/vendor/persist /userdata && ln -s /android/data /data && ln -s /android/system /system && ln -s /android/vendor /vendor && ln -s /android/cache /cache && ln -s /android/persist /persist && ln -s /android/product /product && ln -s /android/metadata /metadata && ln -s /android/odm /odm && ln -s /android/apex /apex
 
   - action: run
     chroot: true
     description: Remove udev override used in Halium setup
     command: rm /etc/init/udev.override
-
-  - action: run
-    chroot: true
-    description: Setting password on phablet user
-    command: echo phablet:phablet | chpasswd
 
   - action: recipe
     description: Polish the image
