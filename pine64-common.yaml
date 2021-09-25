@@ -6,7 +6,8 @@ architecture: {{ $architecture }}
 actions:
   - action: recipe
     description: Setup core rootfs
-    recipe: fragments/mainline-rootfs-core.yaml
+    ###recipe: fragments/mainline-rootfs-core.yaml
+    recipe: focal/focal-base.yaml
     variables:
       architecture: {{ $architecture }}
       debug: {{ $debug }}
@@ -43,7 +44,7 @@ actions:
     description: Setting up mali
     recipe: pine64-mali.yaml
     variables:
-      architecture: {{ $architecture }}
+    architecture: {{ $architecture }}
 {{end}}
 
   - action: run
