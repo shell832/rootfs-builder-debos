@@ -12,7 +12,7 @@ actions:
   - action: download
     description: Download Ubuntu Base, so that we don't have to run debootstrap
     ###url: "{{ $cdimagesmirror }}/ubuntu-base/releases/focal/release/{{ $ubuntu_base }}"
-    url: "http://cdimage.ubuntu.com/ubuntu-base/focal/daily/20210924/focal-base-arm64.tar.gz"
+    url: "http://cdimage.ubuntu.com/ubuntu-base/focal/daily/20210929/focal-base-amd64.tar.gz"
     unpack: false
     ###filename: {{ $ubuntu_base }}
     ###name: {{ $ubuntu_base }}

@@ -21,17 +21,22 @@ actions:
 
   - action: download
     description: Fetch latest kernel ci build
-    url: https://gitlab.com/pine64-org/linux/-/jobs/artifacts/pine64-kernel-ubports/download?job=build
+    url: https://raw.githubusercontent.com/typeproto187/rootfs-builder-debos/master/pp-5.15.zip
     name: kernel
-    filename: kernel.zip
+    filename: pp-5.15.zip 
     unpack: true
     compression: zip
+    ###url: https://gitlab.com/pine64-org/linux/-/jobs/artifacts/pine64-kernel-ubports/download?job=build
+    ###name: kernel
+    ###filename: kernel.zip
+    ###unpack: true
+    ###compression: zip
 
   - action: download
     description: Fetch u-boot build
-    url: https://gitlab.com/pine64-org/u-boot/-/jobs/artifacts/universalsuperbox/testing-new-partitions/download?job=build
+    url: https://gitlab.com/pine64-org/u-boot/-/jobs/933666926/artifacts/download?file_type=archive
     name: u-boot
-    filename: build.zip
+    filename: artifacts.zip
     unpack: true
     compression: zip
 
